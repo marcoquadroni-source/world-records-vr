@@ -11,3 +11,26 @@
 body.exploring .intro{display:none}
 
 @media(max-width:600px){#detail{max-height:25vh}#detail #visual,#detail #scale{display:none}.header-actions #help{display:inline-block;font-size:0;width:32px;padding:8px}.header-actions #help::after{content:'?';font-size:12px}.header-actions{gap:5px}.header-actions #browse{font-size:10px;padding:8px 10px}}
+
+/* Compact landscape and accessible touch controls. */
+select:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+button:disabled{opacity:.45;cursor:not-allowed}
+dialog{max-height:85dvh;overflow:auto}
+@media (max-width:900px) and (max-height:650px){
+ header{padding:8px 4%}
+ .gallery-toolbar{top:62px;left:4%}
+ .intro{display:none}
+ #detail{top:110px;bottom:auto;right:4%;width:185px;max-height:calc(100dvh - 220px);padding:12px}
+ #detail h2{font-size:20px}
+ #detail .measure strong{font-size:24px}
+ #detail #description{display:none}
+ footer{bottom:28px;left:4%;right:4%;flex-wrap:nowrap;gap:8px}
+ footer nav{width:auto;flex:1;min-width:0}
+ #exhibits{min-width:0;margin-left:0}
+ footer .actions{width:auto;flex-shrink:0}
+ .actions button{padding:10px 12px}
+ .primary span{margin-left:5px}
+ .render-note{display:none}
+}
+@media (pointer:coarse){.catalogue-item{min-height:44px}#previous,#next{min-width:44px;min-height:44px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
