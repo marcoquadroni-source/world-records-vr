@@ -1,0 +1,21 @@
+name: App integrity
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          for f in app.js catalogue.js models.js; do
+            node --input-type=module --check < "$f"
+          done
+      - name: Check catalogue and asset rights
+        run: node tests/integrity.mjs
