@@ -1,5 +1,6 @@
 WORLD RECORDS EXPERIENCE — 43-EXHIBIT CATALOGUE
-Version 2026.11.26.3 · Extra spending: 0 SEK.
+Version 2026.11.26.4 · Extra spending: 0 SEK.
+This update redesigns the gallery hall, exhibit signage, responsive controls, procedural models and solar system shading. Immersive VR starts in front of the selected exhibit. Floor rings and exhibit labels move the visitor to close viewpoints. The optional local height setting adjusts model display sizes and shows measurements relative to the visitor.
 Saturn V uses an unchanged textured GLB by NASA / Michael D. Carbajal. Source and rights are listed in RIGHTS.json.
 
 CONTENT
@@ -12,8 +13,8 @@ RUN
 Serve this entire folder with a static HTTP server. No build step. All runtime modules, textures and notices are local files in the same folder. HTTPS is required for headset WebXR away from localhost. There are no analytics, paid APIs, subscriptions or runtime asset CDN requests. Only optional source/license links navigate externally.
 
 VISUAL TRUTH
-Museum architecture and stone maps are original procedural geometry/materials. Planet imagery uses edited image composites on spheres, not fully photorealistic volumetric planets. Saturn rings use their own original ring geometry and licensed texture; ring dimensions are schematic and excluded from the body-diameter statistic. Venus shows its cloud cover. Earth has a separate cloud shell. No measured lunar topography, true atmosphere simulation, ray tracing, baked global illumination or scientific orbital simulation is claimed.
-All 33 non-space exhibits are original procedural sculptures/illustrations. They are not photorealistic, anatomical, engineering or fossil reconstructions. Human figures are generic measurement figures, not portraits. Similar shapes share parameterized model construction. No third-party human likeness, vehicle logo or downloaded animal model is included.
+Museum architecture and stone maps are original procedural geometry/materials. Planet imagery uses surface maps and real-time shading on spheres. Saturn rings use their own original ring geometry and licensed texture; ring dimensions are schematic and excluded from the body-diameter statistic. Venus shows its cloud cover. Earth clouds and their offset shadows are composited in the surface shader. No measured lunar topography, true atmosphere simulation, ray tracing, baked global illumination or scientific orbital simulation is claimed.
+Outside the solar-system section, 32 exhibits use original procedural sculptures. Saturn V uses the NASA model with a procedural fallback. They are not photorealistic, anatomical, engineering or fossil reconstructions. Human figures are generic measurement figures, not portraits. Similar shapes share parameterized model construction. No third-party human likeness, vehicle logo or downloaded animal model is included.
 
 SCALE
 Default exhibition models are each individually fitted to a display podium; their apparent sizes are not directly comparable. Compare sets the three displayed measurements to a common metres-to-scene-unit ratio using each model's measurement axis. Heights, lengths, shoulder heights and wingspans can differ: the panel identifies the dimension. Saturn body diameter excludes ring span. Planet values are stored in metres and displayed in kilometres. These are miniatures, not life-size scenes. Pages with only one or two items have only that many models.
@@ -22,7 +23,7 @@ FACT AND RIGHTS STATUS
 catalogue.js holds all exhibit values, source links, and verification flags. Figures retained from planning without independent verification are explicitly marked as planning/sample measurements. Dinosaur/extinct-species dimensions are examples/estimates, not certain maximal records. No current living-person record status is asserted.
 Corrections: Wadlows hand 32.3 cm from Guinness's dedicated largest-hands page (other Guinness pages differ slightly); foot/shoe value explicitly labelled historical. General Sherman height rounded to 83.8 m from NPS's 274.9 ft; biggest-tree claims concern volume, not height. Solar mean diameters use NASA/JPL physical parameters; Sun diameter is rounded to approximately 1.4 million km from NASA's facts page.
 Planet maps by Solar System Scope / INOVE under CC BY 4.0. Verified source declaration: https://www.solarsystemscope.com/textures/ on 2026-11-26. Every map's direct download URL, hash and render-use description are listed in RIGHTS.json. File pixels remain unchanged. Ring UV mapping, Earth cloud alpha and real-time lighting are applied at render time. A credit panel, footer and help text identify the creator and license; CC-BY-4.0.txt is bundled. No endorsement implied.
-Three.js 0.170.0, MIT: THREE-LICENSE.txt retained. No other external visual assets. Original generated geometry/maps/UI use system fonts without distributing fonts.
+Three.js 0.170.0 and its GLTFLoader and BufferGeometryUtils are bundled under the MIT licence in THREE-LICENSE.txt. Original generated geometry/maps/UI use system fonts without distributing fonts.
 
 VALIDATION PERFORMED
 JavaScript syntax checks for app, model builder and catalogue.
@@ -36,4 +37,4 @@ No real Quest 3 test, XR input test, floor tracking, teleport comfort, snap-turn
 No hand tracking, MR, eight-language translation, voiceover, store release or full factual certification. Complete rights-verified realistic replacement models and primary-source review of every planning value remain future work.
 
 FINAL PRE-PUBLICATION CHECKS
-All 12 licensed image hashes match their manifest and every referenced local image/module exists. The latest model geometry test passed after the Quetzalcoatlus wing-angle adjustment. Narrow 403x760 view inspected with the elephant selected: camera recenters selected exhibits, information and navigation remain accessible. The introduction now hides after browsing so it does not obscure models. Human common-scale view and a two-item prehistory page inspected. No hardware test claimed.
+The 12 planet maps, the Saturn V model and the bundled loader utilities match their rights-manifest hashes. The latest model geometry test passed after the Quetzalcoatlus wing-angle adjustment. The full catalogue was exercised in Chromium. Desktop, touch portrait and touch landscape layouts were inspected. No hardware test claimed.
