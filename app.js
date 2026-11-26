@@ -1,7 +1,7 @@
 import * as T from './three.module.js';
 const $=s=>document.querySelector(s), status=$('#status');
-import {records,categories} from './catalogue.js?v=2026.11.26.4';
-import {buildModel} from './models.js?v=2026.11.26.4';
+import {records,categories} from './catalogue.js?v=2026.11.26.5';
+import {buildModel} from './models.js?v=2026.11.26.5';
 let renderer;
 try{renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch(e){status.textContent='3D-grafiken kunde inte starta. Aktivera WebGL och ladda om.';throw e;}
 renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');$('#scene').append(renderer.domElement);
@@ -186,7 +186,78 @@ envScene.traverse(object => {
  }
 });
 pmrem.dispose();
-const loader=new T.TextureLoader();let assetFailures=0;
+const loader = new T.TextureLoader();
+const polyHavenBase = new URL('./assets/poly-haven/',import.meta.url);
+
+async function installMarble() {
+ const files = ['marble_01_diff_1k.jpg','marble_01_nor_gl_1k.jpg','marble_01_rough_1k.jpg'];
+ const maps = await Promise.allSettled(files.map(file => loader.loadAsync(new URL(file,polyHavenBase).href)));
+ const [color,normal,roughness] = maps.map(result => result.status === 'fulfilled' ? result.value : null);
+ if (!color) {
+  normal?.dispose();
+  roughness?.dispose();
+  throw maps[0].reason;
+ }
+ for (const texture of [color,normal,roughness].filter(Boolean)) {
+  texture.wrapS = texture.wrapT = T.RepeatWrapping;
+  texture.repeat.set(28.6 / 2.4,40 / 2.4);
+  texture.anisotropy = Math.min(4,renderer.capabilities.getMaxAnisotropy());
+ }
+ color.name = 'Poly Haven Marble 01';
+ color.colorSpace = T.SRGBColorSpace;
+ floor.map.dispose();
+ floor.map = color;
+ floor.color.set('#f1e8d9');
+ floor.normalMap = normal;
+ floor.normalScale.set(.48,.48);
+ floor.roughnessMap = roughness;
+ floor.roughness = roughness ? .84 : .47;
+ floor.needsUpdate = true;
+}
+
+async function installGalleryBenches() {
+ const {GLTFLoader} = await import('./GLTFLoader.js');
+ const {scene:bench} = await new GLTFLoader().loadAsync(new URL('painted-wooden-bench.glb',polyHavenBase).href);
+ const bounds = new T.Box3().setFromObject(bench);
+ const center = bounds.getCenter(new T.Vector3());
+ bench.position.set(-center.x,-bounds.min.y,-center.z);
+ bench.traverse(object => {
+  if (object.isMesh) object.castShadow = object.receiveShadow = true;
+ });
+ for (const side of [-1,1]) {
+  const furniture = new T.Group();
+  furniture.name = 'Poly Haven Painted Wooden Bench';
+  furniture.add(bench.clone());
+  furniture.position.set(side * 8.7,0,1.25);
+  furniture.rotation.y = -side * Math.PI / 2;
+  scene.add(furniture);
+ }
+ renderer.shadowMap.needsUpdate = true;
+}
+async function installStudioLighting() {
+ const {RGBELoader} = await import('./RGBELoader.js');
+ const hdr = await new RGBELoader().loadAsync(new URL('studio_small_03_512.hdr',polyHavenBase).href);
+ const generator = new T.PMREMGenerator(renderer);
+ try {
+  const studio = generator.fromEquirectangular(hdr);
+  studio.texture.name = 'Poly Haven Studio Small 03';
+  scene.environment = studio.texture;
+  scene.environmentIntensity = .2;
+  environment.dispose();
+ } finally {
+  generator.dispose();
+  hdr.dispose();
+ }
+}
+
+for (const [name,install] of [
+ ['Marble 01',installMarble], ['Studio Small 03',installStudioLighting],
+ ['Painted Wooden Bench',installGalleryBenches]
+]) {
+ install().catch(error => console.warn('Optional gallery asset unavailable:',name,error));
+}
+
+let assetFailures=0;
 const mapFiles=[...new Set(records.filter(r=>r.image).map(r=>r.image)),'2k_earth_clouds.jpg','2k_saturn_ring_alpha.png'];
 const maps={};await Promise.all(mapFiles.map(async name=>{try{const t=await loader.loadAsync('./'+name);t.colorSpace=T.SRGBColorSpace;t.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());maps[name]=t;}catch(e){assetFailures++;console.warn('Asset unavailable:',name);}}));
 const contactCanvas=document.createElement('canvas');contactCanvas.width=contactCanvas.height=256;const cg=contactCanvas.getContext('2d'),gradient=cg.createRadialGradient(128,128,15,128,128,128);gradient.addColorStop(0,'rgba(0,0,0,.48)');gradient.addColorStop(.45,'rgba(0,0,0,.24)');gradient.addColorStop(1,'rgba(0,0,0,0)');cg.fillStyle=gradient;cg.fillRect(0,0,256,256);const contactTexture=new T.CanvasTexture(contactCanvas);
