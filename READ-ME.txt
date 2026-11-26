@@ -1,5 +1,6 @@
 WORLD RECORDS EXPERIENCE — 43-EXHIBIT CATALOGUE
-Version 2026.11.26.2 · Extra spending: 0 SEK.
+Version 2026.11.26.3 · Extra spending: 0 SEK.
+Saturn V uses an unchanged textured GLB by NASA / Michael D. Carbajal. Source and rights are listed in RIGHTS.json.
 
 CONTENT
 Restores every one of the 37 names in the verified earlier repository catalogue. Adds Mercury, Venus, Mars, Saturn, Uranus and Neptune, for 43 total. Sections: people 6, animals 8, buildings/nature 6, vehicles/technology 8, prehistory 5, solar system 10. Eight planets plus Moon and Sun; neither Moon nor Sun is labelled a planet. Pluto is a dwarf planet and is not included in the eight-planet count.

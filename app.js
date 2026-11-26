@@ -1,7 +1,7 @@
 import * as T from './three.module.js';
 const $=s=>document.querySelector(s), status=$('#status');
-import {records,categories} from './catalogue.js?v=2026.11.26.2';
-import {buildModel} from './models.js?v=2026.11.26.2';
+import {records,categories} from './catalogue.js?v=2026.11.26.3';
+import {buildModel} from './models.js?v=2026.11.26.3';
 let renderer;
 try{renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch(e){status.textContent='3D-grafiken kunde inte starta. Aktivera WebGL och ladda om.';throw e;}
 renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');$('#scene').append(renderer.domElement);
@@ -48,17 +48,44 @@ function sphereModel(r){const root=new T.Group(),map=maps[r.image];const p=mesh(
 if(r.id==='earth_daymap'&&maps['2k_earth_clouds.jpg']){const cloud=mesh(new T.SphereGeometry(1.008,48,32),new T.MeshStandardMaterial({color:'#ffffff',alphaMap:maps['2k_earth_clouds.jpg'],transparent:true,opacity:.85,depthWrite:false,roughness:1}),0,0,0,p);cloud.castShadow=false;cloud.receiveShadow=false;}
 if(r.id==='saturn'){const geo=new T.RingGeometry(1.18,2.15,96);const uv=geo.attributes.uv,pos=geo.attributes.position;for(let i=0;i<pos.count;i++){const radius=Math.hypot(pos.getX(i),pos.getY(i));uv.setXY(i,(radius-1.18)/(.97),.5);}const ring=mesh(geo,new T.MeshStandardMaterial({map:maps['2k_saturn_ring_alpha.png']||null,color:'#cfbea0',side:T.DoubleSide,transparent:true,roughness:.9}),0,0,0,root);ring.rotation.x=-Math.PI/2+.40;ring.castShadow=false;}
 return root;}
-function disposeExhibits(){const mats=new Set(),geos=new Set();exhibits.traverse(o=>{if(o.isMesh){geos.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])mats.add(m);}});geos.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map?.userData.generated)m.map.dispose();m.dispose();});exhibits.clear();for(let i=interactive.length-1;i>=0;i--)if(interactive[i].userData.type==='exhibit')interactive.splice(i,1);labels.length=0;slotModels=[];}
+const saturnVId = 'record-27';
+let saturnVScene, saturnVLoad, saturnVFailed = false;
+
+function loadSaturnV() {
+ if (saturnVLoad) return;
+ saturnVLoad = import('./GLTFLoader.js')
+  .then(({GLTFLoader}) => new GLTFLoader().loadAsync(new URL('./saturn-v.glb', import.meta.url).href))
+  .then(({scene: model}) => {
+   model.traverse(object => {
+    if (!object.isMesh) return;
+    object.castShadow = true;
+    object.receiveShadow = true;
+    object.userData.sharedExhibitAssets = true;
+   });
+   saturnVScene = model;
+   if (displayed.some(index => records[index].id === saturnVId)) renderGallery();
+  })
+  .catch(error => {
+   saturnVFailed = true;
+   console.warn('Saturn V model unavailable:', error);
+   if (records[selected].id === saturnVId) updateDetail();
+  });
+}
+
+function disposeExhibits(){const mats=new Set(),geos=new Set();exhibits.traverse(o=>{if(o.isMesh&&!o.userData.sharedExhibitAssets){geos.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:[o.material])mats.add(m);}});geos.forEach(g=>g.dispose());mats.forEach(m=>{if(m.map?.userData.generated)m.map.dispose();m.dispose();});exhibits.clear();for(let i=interactive.length-1;i>=0;i--)if(interactive[i].userData.type==='exhibit')interactive.splice(i,1);labels.length=0;slotModels=[];}
 function applyScale(){const worldPerMeter=Math.min(...displayed.map((i,j)=>scales[j]*measureSpans[j]/records[i].value));slotModels.forEach((m,j)=>{const r=records[displayed[j]],actualScale=compare?worldPerMeter*r.value/measureSpans[j]:scales[j];m.scale.setScalar(actualScale);m.position.set(0,0,0);const [x,,z]=spots[j];const b=new T.Box3().setFromObject(m),center=b.getCenter(new T.Vector3());m.position.set(x-center.x,(r.kind==='planet'?.35:1.15)-b.min.y,z-center.z);if(r.kind==='planet'){// Body diameter is scaled; Saturn ring span is deliberately larger.
  const body=actualScale;m.position.y=Math.max(.35+body,2.65);}});$('#compare').textContent=compare?'Återställ skala':'Jämför storlek';$('#compare').setAttribute('aria-pressed',String(compare));}
 function renderGallery(){disposeExhibits();const group=records.map((r,i)=>({r,i})).filter(x=>x.r.cat===category);const pages=Math.ceil(group.length/3);page=((page%pages)+pages)%pages;displayed=group.slice(page*3,page*3+3).map(x=>x.i);scales=[];measureSpans=[];
-displayed.forEach((idx,j)=>{const r=records[idx],[x,,z]=spots[j],model=r.kind==='planet'?sphereModel(r):buildModel(r);exhibits.add(model);model.updateMatrixWorld(true);const b=new T.Box3().setFromObject(model),size=b.getSize(new T.Vector3()),center=b.getCenter(new T.Vector3());model.position.set(x-center.x,.35-b.min.y,z-center.z);const maxSize=Math.max(size.x,size.y,size.z),scale=r.kind==='planet'?(r.id==='saturn'?.75:1.22):Math.min(3.2/maxSize,3.7/Math.max(.01,size.y));scales.push(scale);measureSpans.push(r.kind==='planet'?2:size[r.axis]);slotModels.push(model);
+displayed.forEach((idx,j)=>{const r=records[idx],[x,,z]=spots[j],model=r.kind==='planet'?sphereModel(r):r.id===saturnVId&&saturnVScene?saturnVScene.clone():buildModel(r);if(r.id===saturnVId)loadSaturnV();exhibits.add(model);model.updateMatrixWorld(true);const b=new T.Box3().setFromObject(model),size=b.getSize(new T.Vector3()),center=b.getCenter(new T.Vector3());model.position.set(x-center.x,.35-b.min.y,z-center.z);const maxSize=Math.max(size.x,size.y,size.z),scale=r.kind==='planet'?(r.id==='saturn'?.75:1.22):Math.min(3.2/maxSize,3.7/Math.max(.01,size.y));scales.push(scale);measureSpans.push(r.kind==='planet'?2:size[r.axis]);slotModels.push(model);
 if(r.kind!=='planet'){mesh(new T.CylinderGeometry(.72,.82,.8,48),black.clone(),x,.75,z,exhibits);mesh(new T.CylinderGeometry(.74,.74,.025,48),gold.clone(),x,1.16,z,exhibits);}
-const l=plaque(r.name.toUpperCase(),measurement(r)+' · '+(r.kind==='planet'?'DIAMETER':r.dimension.toUpperCase()));l.position.set(x,.84,z+2.1);l.userData={type:'exhibit',index:idx};exhibits.add(l);labels.push(l);interactive.push(l);});
+const l=plaque(r.name.toUpperCase(),measurement(r)+' · '+(r.kind==='planet'?'DIAMETER':r.dimension.toUpperCase())+(r.id===saturnVId&&saturnVScene?' · NASA / M. D. CARBAJAL':''));l.position.set(x,.84,z+2.1);l.userData={type:'exhibit',index:idx};exhibits.add(l);labels.push(l);interactive.push(l);});
 // Normalize first, then recenter each model in its podium footprint.
 slotModels.forEach((m,j)=>{m.scale.setScalar(scales[j]);m.position.set(0,0,0);const b=new T.Box3().setFromObject(m),center=b.getCenter(new T.Vector3());m.position.set(spots[j][0]-center.x,.35-b.min.y,spots[j][2]-center.z);});applyScale();
 $('#gallery-page').textContent=`${categories[category]} · ${page+1} / ${pages}`;$('#category').value=String(category);$('#exhibits').replaceChildren(...displayed.map((idx,j)=>{const b=document.createElement('button');b.dataset.exhibit=String(idx);b.textContent=records[idx].name;b.onclick=()=>choose(idx);return b;}));if(!displayed.includes(selected))selected=displayed[0];updateDetail();}
-function updateDetail(){const r=records[selected],slot=displayed.indexOf(selected);$('#number').textContent=`${String(selected+1).padStart(2,'0')} / ${categories[r.cat].toUpperCase()}`;$('#title').textContent=r.name;$('#description').textContent=r.description;$('#diameter').textContent=r.kind==='planet'?fmt(r.value/1000):fmt(r.value);$('#dimension').textContent=r.kind==='planet'?r.dimension:r.dimension+' · m';$('#visual').textContent=r.visual;$('#evidence').textContent=r.verified?'Källbelagt mått · se källa':'Planeringsmått / storleksexempel · ej källverifierat';$('#source').hidden=!r.source;if(r.source){$('#source').href=r.source;$('#source').textContent='Öppna faktakälla ↗';}
+function updateDetail(){const r=records[selected],slot=displayed.indexOf(selected);$('#number').textContent=`${String(selected+1).padStart(2,'0')} / ${categories[r.cat].toUpperCase()}`;$('#title').textContent=r.name;$('#description').textContent=r.description;$('#diameter').textContent=r.kind==='planet'?fmt(r.value/1000):fmt(r.value);$('#dimension').textContent=r.kind==='planet'?r.dimension:r.dimension+' · m';$('#visual').textContent=r.id===saturnVId
+ ? saturnVScene?'Texturerad 3D-modell av NASA / Michael D. Carbajal.'
+ : saturnVFailed?'Förenklad reservmodell visas.':'NASA:s 3D-modell laddas.'
+ : r.visual;$('#evidence').textContent=r.verified?'Källbelagt mått · se källa':'Planeringsmått / storleksexempel · ej källverifierat';$('#source').hidden=!r.source;if(r.source){$('#source').href=r.source;$('#source').textContent='Öppna faktakälla ↗';}
 const scale=slot>=0?scales[slot]:1;$('#scale').textContent=compare?'Gemensam skala för visade mått; höjd, längd och spännvidd kan skilja.':'Individuellt skalade modeller; inte inbördes skala.';
 document.querySelectorAll('[data-exhibit]').forEach(b=>{const active=+b.dataset.exhibit===selected;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});labels.forEach((l,j)=>l.material.color.set(displayed[j]===selected?'#ffffff':'#94a69a'));status.textContent=assetFailures?'Bildkartor saknas: '+assetFailures+' · reservytor används':`${r.name} vald · ${records.length} utställningar`;
 }

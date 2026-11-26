@@ -6,7 +6,9 @@ A real-time 3D museum prototype with **43 exhibits in six sections**: people (6)
 
 The solar system includes all eight planets, plus the Moon and Sun. Saturn has a separate ring mesh. Planet imagery: Solar System Scope / INOVE, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), with per-file sources and hashes in RIGHTS.json. Three.js is MIT licensed; its notice is retained in THREE-LICENSE.txt.
 
-Other exhibits use original schematic geometry: **illustrations, not photorealistic, anatomical, or engineering reconstructions**. People use generic measurement figures, not portraits. Values inherited from planning that have not been independently verified are visibly labelled. Published historical measurements do not promise a current record title.
+Saturn V uses the original textured GLB by [NASA / Michael D. Carbajal](https://science.nasa.gov/3d-resources/saturn-v/). The app loads it when its gallery page opens and displays a schematic model while loading or if the asset is unavailable.
+
+The remaining exhibits use original schematic geometry: **illustrations, not photorealistic, anatomical, or engineering reconstructions**. People use generic measurement figures, not portraits. Values inherited from planning that have not been independently verified are visibly labelled. Published historical measurements do not promise a current record title.
 
 Use the section selector, catalogue, and page arrows to browse. Comparison uses a common scale for the three visible measurements; the measurement types can differ. Default display scales each object separately. These are scale models, not life-size reconstructions or orbital spacing.
 

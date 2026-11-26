@@ -121,6 +121,36 @@
       "verified_on": "2026-11-26",
       "changes": "File unchanged; mapped to original 3D geometry and lit in real time. Saturn ring map used on a ring mesh.",
       "sha256": "225012ad4911730605c4e189ca2a3bf674fce50cc48aab4102b936b47d6991ac"
+    },
+    {
+      "file": "saturn-v.glb",
+      "source": "https://assets.science.nasa.gov/content/dam/science/cds/3d/resources/model/saturn-v/Saturn%20V.glb",
+      "creator": "NASA / Michael D. Carbajal",
+      "license": "NASA 3D Resources free use",
+      "license_url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "verified_on": "2026-11-26",
+      "changes": "File unchanged. The app scales and lights the model. Source page: https://science.nasa.gov/3d-resources/saturn-v/",
+      "sha256": "6c44497bce54ee0b09d0edb8e33a6f484762a320dab1c54b383e434f5bba06b5"
+    },
+    {
+      "file": "GLTFLoader.js",
+      "source": "https://github.com/mrdoob/three.js/blob/r170/examples/jsm/loaders/GLTFLoader.js",
+      "creator": "Three.js Authors",
+      "license": "MIT",
+      "license_url": "https://github.com/mrdoob/three.js/blob/r170/LICENSE",
+      "verified_on": "2026-11-26",
+      "changes": "Import paths point to bundled local dependencies. See THREE-LICENSE.txt.",
+      "sha256": "458b025b12213713958b07012b48aa5e84aebb562c92cfe53ea82d41bda2fd42"
+    },
+    {
+      "file": "BufferGeometryUtils.js",
+      "source": "https://github.com/mrdoob/three.js/blob/r170/examples/jsm/utils/BufferGeometryUtils.js",
+      "creator": "Three.js Authors",
+      "license": "MIT",
+      "license_url": "https://github.com/mrdoob/three.js/blob/r170/LICENSE",
+      "verified_on": "2026-11-26",
+      "changes": "Import paths point to bundled local dependencies. See THREE-LICENSE.txt.",
+      "sha256": "3de832095679e56578beddf70f3e90846a47ec8a886fa8eb21c973cdaef88922"
     }
   ]
 }
