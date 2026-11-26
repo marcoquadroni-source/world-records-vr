@@ -1,5 +1,6 @@
 WORLD RECORDS EXPERIENCE — 43-EXHIBIT CATALOGUE
-Version 2026.11.26.5 · Extra spending: 0 SEK.
+Version 2026.11.26.6 · Extra spending: 0 SEK.
+The selected podium receives a gold rim and spotlight. Immersive VR adds a world-space measurement panel and controller hit markers.
 This update redesigns the gallery hall, exhibit signage, responsive controls, procedural models and solar system shading. Immersive VR starts in front of the selected exhibit. Floor rings and exhibit labels move the visitor to close viewpoints. The optional local height setting adjusts model display sizes and shows measurements relative to the visitor.
 Saturn V uses an unchanged textured GLB by NASA / Michael D. Carbajal. Source and rights are listed in RIGHTS.json.
 

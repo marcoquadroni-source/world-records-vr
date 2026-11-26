@@ -1,7 +1,7 @@
 import * as T from './three.module.js';
 const $=s=>document.querySelector(s), status=$('#status');
-import {records,categories} from './catalogue.js?v=2026.11.26.5';
-import {buildModel} from './models.js?v=2026.11.26.5';
+import {records,categories} from './catalogue.js?v=2026.11.26.6';
+import {buildModel} from './models.js?v=2026.11.26.6';
 let renderer;
 try{renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch(e){status.textContent='3D-grafiken kunde inte starta. Aktivera WebGL och ladda om.';throw e;}
 renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');$('#scene').append(renderer.domElement);
@@ -242,7 +242,7 @@ async function installStudioLighting() {
   const studio = generator.fromEquirectangular(hdr);
   studio.texture.name = 'Poly Haven Studio Small 03';
   scene.environment = studio.texture;
-  scene.environmentIntensity = .2;
+  scene.environmentIntensity = .16;
   environment.dispose();
  } finally {
   generator.dispose();
@@ -304,6 +304,13 @@ const platformProfile = new T.LatheGeometry([
 ].map(([radius,height]) => new T.Vector2(radius,height)), 64);
 const platformSurface = new T.CylinderGeometry(2.085,2.085,.022,64);
 const trimGeometry = new T.TorusGeometry(2.16,.014,7,72);
+const selectionRingMaterial = new T.MeshBasicMaterial({color:'#e9bf77',toneMapped:false});
+const selectionRing = mesh(new T.TorusGeometry(2.05,.014,8,96),selectionRingMaterial,0,.351,0);
+selectionRing.name = 'Selected exhibit podium rim';
+selectionRing.rotation.x = -Math.PI / 2;
+selectionRing.castShadow = selectionRing.receiveShadow = false;
+const exhibitLight = new T.SpotLight('#ffe4b7',26,15,.32,.75,2);
+scene.add(exhibitLight,exhibitLight.target);
 const platformShadow = new T.PlaneGeometry(5.6,5.6);
 const platformShadowMaterial = new T.MeshBasicMaterial({map:contactTexture,transparent:true,depthWrite:false});
 for (const [x,,z] of spots) {
@@ -375,6 +382,45 @@ for (const [name,type,x,y,sub] of [['Föregående','previous',-1.02,.88,'UTSTÄL
  spatialMenu.add(button);
 }
 spatialMenu.visible = false;
+const vrInfoCanvas = document.createElement('canvas');
+vrInfoCanvas.width = 1024;
+vrInfoCanvas.height = 512;
+const vrInfoTexture = new T.CanvasTexture(vrInfoCanvas);
+vrInfoTexture.colorSpace = T.SRGBColorSpace;
+const vrInfo = mesh(new T.PlaneGeometry(1.56,.78),
+ new T.MeshBasicMaterial({map:vrInfoTexture,toneMapped:false}),0,0,0);
+vrInfo.name = 'VR exhibit information';
+vrInfo.castShadow = vrInfo.receiveShadow = vrInfo.visible = false;
+
+function drawVRInfo(record) {
+ const context = vrInfoCanvas.getContext('2d');
+ context.fillStyle = '#15221f';
+ context.fillRect(0,0,1024,512);
+ context.strokeStyle = '#bb9661';
+ context.lineWidth = 4;
+ context.strokeRect(12,12,1000,488);
+ context.fillStyle = '#d7b780';
+ context.font = '33px sans-serif';
+ context.fillText(categories[record.cat].toUpperCase(),56,78,912);
+ context.fillStyle = '#fff3da';
+ context.font = '76px Georgia, serif';
+ context.fillText(record.name,56,184,912);
+ context.strokeStyle = '#8d795b';
+ context.beginPath();
+ context.moveTo(56,227);
+ context.lineTo(968,227);
+ context.stroke();
+ context.fillStyle = '#f4d396';
+ context.font = '76px Georgia, serif';
+ context.fillText(measurement(record),56,330,912);
+ context.fillStyle = '#ede3cc';
+ context.font = '36px sans-serif';
+ context.fillText(record.dimension,56,391,912);
+ context.font = '30px sans-serif';
+ context.fillText(ratioLabel(record) || (record.verified ? 'Källbelagt mått' : 'Ungefärligt mått'),56,453,912);
+ vrInfoTexture.needsUpdate = true;
+}
+
 let selected=records.findIndex(r=>r.id==='mercury'),category=5,page=0,compare=false,targetX=innerWidth<760?-5:0,targetZ=innerWidth<760?3.8:8.7,displayed=[],slotModels=[],scales=[],measureSpans=[];
 camera.position.set(targetX,1.65,targetZ);
 let viewerHeight = 1.65, pendingView = null, heightPlaque, heightPlaqueLabel;
@@ -418,6 +464,8 @@ function positionSpatialMenu({x,z}) {
  const side = x > 0 ? -1 : 1;
  spatialMenu.position.set(x + side * 2.25, Math.min(.30, viewerHeight - 1.65), z - 1.85);
  spatialMenu.rotation.y = Math.atan2(x - spatialMenu.position.x, z - spatialMenu.position.z);
+ vrInfo.position.set(x - side * 1.95,viewerHeight - .12,z - 2.25);
+ vrInfo.rotation.y = Math.atan2(x - vrInfo.position.x,z - vrInfo.position.z);
 }
 
 function focusSelectedInVR() {
@@ -721,6 +769,11 @@ const l=plaque(r.name,measurement(r)+' · '+(r.kind==='planet'?'DIAMETER':r.dime
 slotModels.forEach((m,j)=>{m.scale.setScalar(scales[j]);m.position.set(0,0,0);const b=new T.Box3().setFromObject(m),center=b.getCenter(new T.Vector3());m.position.set(spots[j][0]-center.x,.35-b.min.y,spots[j][2]-center.z);});applyScale();
 $('#gallery-page').textContent=`${categories[category]} · ${page+1} / ${pages}`;$('#category').value=String(category);$('#exhibits').replaceChildren(...displayed.map((idx,j)=>{const b=document.createElement('button');b.dataset.exhibit=String(idx);b.textContent=records[idx].name;b.onclick=()=>choose(idx);return b;}));if(!displayed.includes(selected))selected=displayed[0];updateDetail();}
 function updateDetail(){const r=records[selected];updateHeightPlaque(r);
+drawVRInfo(r);
+const [podiumX,,podiumZ]=spots[displayed.indexOf(selected)];
+selectionRing.position.set(podiumX,.351,podiumZ);
+exhibitLight.position.set(podiumX-1.3,6.8,podiumZ+2.4);
+exhibitLight.target.position.set(podiumX,1.9,podiumZ);
 $('#height-open').textContent=personalHeight===null?'Min längd':personalHeight+' cm';
 $('#height-summary').textContent=personalHeight===null?'Längden sparas på den här enheten.':r.name+' · '+r.dimension+' · '+ratioLabel(r)+'.';$('#number').textContent=`${String(selected+1).padStart(2,'0')} / ${categories[r.cat].toUpperCase()}`;$('#title').textContent=r.name;$('#description').textContent=r.description;$('#diameter').textContent=r.kind==='planet'?fmt(r.value/1000):fmt(r.value);$('#dimension').textContent=r.kind==='planet'?r.dimension:r.dimension+' · m';$('#visual').textContent=r.id===saturnVId
  ? saturnVScene?'Texturerad 3D-modell av NASA / Michael D. Carbajal.'
@@ -758,6 +811,9 @@ let yaw=0,pitch=0,drag=null;renderer.domElement.addEventListener('pointerdown',e
 }}
 renderer.domElement.addEventListener('pointerup',e=>{drag=null;if(!renderer.xr.isPresenting){ray.setFromCamera(new T.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),camera);const h=ray.intersectObjects(labels,false)[0];activate(h);}});renderer.domElement.addEventListener('pointercancel',()=>drag=null);addEventListener('keydown',e=>{if($('#guide').open||$('#catalogue').open||$('#height-dialog').open||e.target.matches('select,button,a,input'))return;if(e.key==='ArrowRight')stepPage(1);if(e.key==='ArrowLeft')stepPage(-1);});
 const controllers = [];
+const cursorGeometry = new T.SphereGeometry(.018,12,8);
+const cursorMaterial = new T.MeshBasicMaterial({color:'#ffe4ad',toneMapped:false});
+const controllerHover = new Map();
 function controllerHit(controller) {
  ray.setFromXRController(controller);
  const objects = interactive.filter(object => object.visible);
@@ -771,6 +827,10 @@ for (let index = 0; index < 2; index++) {
  const line = new T.Line(geometry,new T.LineBasicMaterial({color:'#e2bd7d'}));
  line.scale.z = 10;
  controller.add(line);
+ const tip = new T.Mesh(cursorGeometry,cursorMaterial);
+ tip.visible = false;
+ controller.add(tip);
+ controller.addEventListener('disconnected',() => controllerHover.delete(controller));
  controller.addEventListener('select',() => activate(controllerHit(controller)));
  controllers.push(controller);
 }
@@ -792,7 +852,7 @@ $('#vr').onclick = async () => {
    activeSession = null;
    pendingView = null;
    document.body.classList.remove('xr');
-   spatialMenu.visible = false;
+   spatialMenu.visible = vrInfo.visible = false;
    rig.position.set(0,0,0);
    rig.rotation.set(0,0,0);
    camera.fov = 58;
@@ -805,7 +865,7 @@ $('#vr').onclick = async () => {
   snapReady = true;
   focusSelectedInVR();
   document.body.classList.add('xr');
-  spatialMenu.visible = true;
+  spatialMenu.visible = vrInfo.visible = true;
  } catch (error) {
   if (activeSession) {
    await activeSession.end().catch(() => {});
@@ -839,8 +899,17 @@ renderer.setAnimationLoop((time,frame) => {
    }
   }
   for (const controller of controllers) {
-   const hit = controllerHit(controller);
-   controller.children[0].scale.z = hit ? hit.distance : 10;
+   const hit = controller.visible ? controllerHit(controller) : undefined;
+   const [line,tip] = controller.children;
+   line.scale.z = hit ? hit.distance : 4;
+   line.material.color.set(hit ? '#ffe4ad' : '#b38a57');
+   tip.visible = Boolean(hit);
+   if (hit) tip.position.z = -hit.distance;
+   controllerHover.set(controller,hit?.object);
+  }
+  for (const label of labels) {
+   const highlighted = label.userData.index === selected || controllers.some(controller => controllerHover.get(controller) === label);
+   label.material.color.set(highlighted ? '#ffffff' : '#94a69a');
   }
  } else {
   camera.position.x = T.MathUtils.damp(camera.position.x,targetX,3,dt);
