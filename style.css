@@ -598,3 +598,31 @@ body.xr footer, body.xr #status, body.xr .render-note, body.xr #app::before {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; }
 }
+
+#portrait-open:not([hidden]) {
+ display: inline-flex;
+ align-items: center;
+ gap: 10px;
+ margin-block: 8px 2px;
+ padding: 4px 12px 4px 4px;
+}
+#portrait-preview {
+ width: 38px;
+ height: 44px;
+ object-fit: contain;
+ background: #111613;
+}
+#portrait-dialog figure { margin: 0; }
+#portrait-full {
+ display: block;
+ max-width: 100%;
+ max-height: min(62vh,700px);
+ margin-inline: auto;
+ object-fit: contain;
+}
+#portrait-dialog figcaption {
+ margin-top: 12px;
+ color: var(--muted);
+ font-size: 13px;
+}
+#portrait-dialog figcaption a { color: var(--gold); }

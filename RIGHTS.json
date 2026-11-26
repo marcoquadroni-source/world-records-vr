@@ -238,6 +238,50 @@
       "verified_on": "2026-11-26",
       "changes": "Reduced in Blender to 32,536 triangles with 1024px textures. Original dimensions retained.",
       "sha256": "a2f2783bfe59601f627105179c9fe37cf9fd38555109721fa9ad282e8a7fe260"
+    },
+    {
+      "file": "assets/portraits/wadlow.jpg",
+      "creator": "Okänd fotograf",
+      "license": "Public domain (USA)",
+      "license_url": "https://commons.wikimedia.org/wiki/Template:PD-US-no_notice",
+      "asset_page": "https://commons.wikimedia.org/wiki/File:Robert_Wadlow_postcard.jpg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Robert_Wadlow_postcard.jpg",
+      "changes": "Resized and JPEG re-encoded without cropping.",
+      "verified_on": "2026-11-26",
+      "sha256": "51936a55b1e71580e2bd2a05cb9dc10afec67002f2d835b6e3a4b0cb302a572c"
+    },
+    {
+      "file": "assets/portraits/dangi.jpg",
+      "creator": "Ashishlohorung",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "asset_page": "https://commons.wikimedia.org/wiki/File:Chandra_Bahadur_Dangi_in_Sydney.jpg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Chandra_Bahadur_Dangi_in_Sydney.jpg",
+      "changes": "Resized and JPEG re-encoded without cropping.",
+      "verified_on": "2026-11-26",
+      "sha256": "f8d37c531b3a4fbd0f7d7844057e23309ba6b32158b34f84d5d7421bd9f76471"
+    },
+    {
+      "file": "assets/portraits/kosen.jpg",
+      "creator": "Helgi Halldórsson/Freddi",
+      "license": "CC BY-SA 2.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "asset_page": "https://commons.wikimedia.org/wiki/File:Me_%26_Sultan_%284039968933%29.jpg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Me_%26_Sultan_%284039968933%29.jpg",
+      "changes": "Resized and JPEG re-encoded without cropping.",
+      "verified_on": "2026-11-26",
+      "sha256": "ee419f23a4e92606dfff5e847f441efe228becdd419649b25d4e1afc53013c00"
+    },
+    {
+      "file": "assets/portraits/amge.jpg",
+      "creator": "Super Festivals",
+      "license": "CC BY 2.0",
+      "license_url": "https://creativecommons.org/licenses/by/2.0/",
+      "asset_page": "https://commons.wikimedia.org/wiki/File:Jyoti_Amge_%2843968639792%29.jpg",
+      "source": "https://upload.wikimedia.org/wikipedia/commons/5/56/Jyoti_Amge_%2843968639792%29.jpg",
+      "changes": "Resized and JPEG re-encoded without cropping.",
+      "verified_on": "2026-11-26",
+      "sha256": "69b3eec74bd10dcb52c0e812536cfd0dcb385381dc6ef57ee7503bc8ba2529a5"
     }
   ]
 }

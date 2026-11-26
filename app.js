@@ -1,7 +1,7 @@
 import * as T from './three.module.js';
 const $=s=>document.querySelector(s), status=$('#status');
-import {records,categories} from './catalogue.js?v=2026.11.26.8';
-import {buildModel} from './models.js?v=2026.11.26.8';
+import {records,categories} from './catalogue.js?v=2026.11.26.9';
+import {buildModel} from './models.js?v=2026.11.26.9';
 let renderer;
 try{renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch(e){status.textContent='3D-grafiken kunde inte starta. Aktivera WebGL och ladda om.';throw e;}
 renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');$('#scene').append(renderer.domElement);
@@ -435,6 +435,90 @@ const vrInfo = mesh(new T.PlaneGeometry(1.56,.78),
 vrInfo.name = 'VR exhibit information';
 vrInfo.castShadow = vrInfo.receiveShadow = vrInfo.visible = false;
 
+const portraits = {
+ "record-0": {
+  "file": "assets/portraits/wadlow.jpg",
+  "credit": "Okänd fotograf",
+  "license": "Public domain (USA)",
+  "terms": "https://commons.wikimedia.org/wiki/Template:PD-US-no_notice",
+  "source": "https://commons.wikimedia.org/wiki/File:Robert_Wadlow_postcard.jpg",
+  "alt": "Robert Wadlow står till vänster om sin far."
+ },
+ "record-1": {
+  "file": "assets/portraits/dangi.jpg",
+  "credit": "Ashishlohorung",
+  "license": "CC BY-SA 3.0",
+  "terms": "https://creativecommons.org/licenses/by-sa/3.0/",
+  "source": "https://commons.wikimedia.org/wiki/File:Chandra_Bahadur_Dangi_in_Sydney.jpg",
+  "alt": "Chandra Bahadur Dangi fotograferad i Sydney 2012."
+ },
+ "record-2": {
+  "file": "assets/portraits/kosen.jpg",
+  "credit": "Helgi Halldórsson/Freddi",
+  "license": "CC BY-SA 2.0",
+  "terms": "https://creativecommons.org/licenses/by-sa/2.0/",
+  "source": "https://commons.wikimedia.org/wiki/File:Me_%26_Sultan_%284039968933%29.jpg",
+  "alt": "Sultan Kösen fotograferad på Island 2009."
+ },
+ "record-3": {
+  "file": "assets/portraits/amge.jpg",
+  "credit": "Super Festivals",
+  "license": "CC BY 2.0",
+  "terms": "https://creativecommons.org/licenses/by/2.0/",
+  "source": "https://commons.wikimedia.org/wiki/File:Jyoti_Amge_%2843968639792%29.jpg",
+  "alt": "Jyoti Amge fotograferad på Raleigh Supercon 2018."
+ }
+};
+const portraitCanvas = document.createElement('canvas');
+portraitCanvas.width = 768;
+portraitCanvas.height = 768;
+const portraitTexture = new T.CanvasTexture(portraitCanvas);
+portraitTexture.colorSpace = T.SRGBColorSpace;
+const portraitPanel = new T.Mesh(new T.PlaneGeometry(1.3,1.3),
+ new T.MeshBasicMaterial({map:portraitTexture,toneMapped:false}));
+portraitPanel.position.y = 1.02;
+portraitPanel.visible = false;
+vrInfo.add(portraitPanel);
+
+const portraitImages = new Map();
+function updatePortrait(record) {
+ const photo = portraits[record.id];
+ const button = $('#portrait-open');
+ button.hidden = !photo;
+ portraitPanel.visible = false;
+ if (!photo) return;
+ const preview = $('#portrait-preview');
+ preview.src = photo.file;
+ preview.alt = photo.alt;
+ if (!portraitImages.has(record.id)) {
+  const picture = new Image();
+  portraitImages.set(record.id,picture);
+  picture.onload = () => {
+   if (records[selected].id === record.id) paintPortrait(picture,photo);
+  };
+  picture.src = photo.file;
+ }
+ const picture = portraitImages.get(record.id);
+ if (picture.complete && picture.naturalWidth) paintPortrait(picture,photo);
+}
+
+function paintPortrait(picture,photo) {
+ const context = portraitCanvas.getContext('2d');
+ context.fillStyle = '#15221f';
+ context.fillRect(0,0,768,768);
+ context.strokeStyle = '#bb9661';
+ context.lineWidth = 4;
+ context.strokeRect(10,10,748,748);
+ const scale = Math.min(714/picture.naturalWidth,664/picture.naturalHeight);
+ const width = picture.naturalWidth*scale, height = picture.naturalHeight*scale;
+ context.drawImage(picture,(768-width)/2,22+(664-height)/2,width,height);
+ context.font = '23px sans-serif';
+ context.fillStyle = '#f2dfbc';
+ context.fillText(photo.credit+' · '+photo.license,28,731,710);
+ portraitTexture.needsUpdate = true;
+ portraitPanel.visible = true;
+}
+
 function drawVRInfo(record) {
  const context = vrInfoCanvas.getContext('2d');
  context.fillStyle = '#15221f';
@@ -507,7 +591,7 @@ function positionSpatialMenu({x,z}) {
  const side = x > 0 ? -1 : 1;
  spatialMenu.position.set(x + side * 2.25, Math.min(.30, viewerHeight - 1.65), z - 1.85);
  spatialMenu.rotation.y = Math.atan2(x - spatialMenu.position.x, z - spatialMenu.position.z);
- vrInfo.position.set(x - side * 1.95,viewerHeight - .12,z - 2.25);
+ vrInfo.position.set(x - side * 1.95,viewerHeight - (portraits[records[selected].id] ? .51 : .12),z - 2.25);
  vrInfo.rotation.y = Math.atan2(x - vrInfo.position.x,z - vrInfo.position.z);
 }
 
@@ -824,6 +908,7 @@ slotModels.forEach((m,j)=>{m.scale.setScalar(scales[j]);m.position.set(0,0,0);co
 $('#gallery-page').textContent=`${categories[category]} · ${page+1} / ${pages}`;$('#category').value=String(category);$('#exhibits').replaceChildren(...displayed.map((idx,j)=>{const b=document.createElement('button');b.dataset.exhibit=String(idx);b.textContent=records[idx].name;b.onclick=()=>choose(idx);return b;}));if(!displayed.includes(selected))selected=displayed[0];updateDetail();}
 function updateDetail(){const r=records[selected];updateHeightPlaque(r);
 drawVRInfo(r);
+updatePortrait(r);
 const [podiumX,,podiumZ]=spots[displayed.indexOf(selected)];
 selectionRing.position.set(podiumX,.351,podiumZ);
 exhibitLight.position.set(podiumX-1.3,6.8,podiumZ+2.4);
@@ -855,6 +940,22 @@ function stepPage(delta){document.body.classList.add('exploring');page+=delta;re
 function toggleCompare(){compare=!compare;applyScale();updateDetail();}
 $('#category').replaceChildren(...categories.map((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=c+' · '+records.filter(r=>r.cat===i).length;return o;}));$('#category').onchange=e=>changeCategory(+e.target.value);$('#previous').onclick=()=>stepPage(-1);$('#next').onclick=()=>stepPage(1);$('#compare').onclick=toggleCompare;
 $('#catalogue-list').replaceChildren(...categories.map((name,cat)=>{const section=document.createElement('section'),h=document.createElement('h3');h.textContent=name;section.append(h);records.forEach((r,i)=>{if(r.cat!==cat)return;const b=document.createElement('button');b.className='catalogue-item';b.textContent=r.name+' · '+measurement(r);b.onclick=()=>{choose(i);$('#catalogue').close();};section.append(b);});return section;}));$('#browse').onclick=()=>$('#catalogue').showModal();$('#catalogue-close').onclick=()=>$('#catalogue').close();
+const photoDialog = $('#portrait-dialog');
+$('#portrait-open').onclick = () => {
+ const record = records[selected];
+ const photo = portraits[record.id];
+ if (!photo) return;
+ $('#portrait-title').textContent = record.name;
+ $('#portrait-full').src = photo.file;
+ $('#portrait-full').alt = photo.alt;
+ $('#portrait-caption').textContent = photo.alt;
+ $('#portrait-credit').textContent = photo.credit;
+ $('#portrait-credit').href = photo.source;
+ $('#portrait-license').textContent = photo.license;
+ $('#portrait-license').href = photo.terms;
+ photoDialog.showModal();
+};
+$('#portrait-close').onclick = () => photoDialog.close();
 $('#help').onclick=()=>$('#guide').showModal();$('#close').onclick=$('#start').onclick=()=>$('#guide').close();$('.brand').onclick=e=>{e.preventDefault();changeCategory(5);};
 const heightDialog = $('#height-dialog'), heightInput = $('#height-cm');
 $('#height-open').onclick = () => {
@@ -876,7 +977,7 @@ let yaw=0,pitch=0,drag=null;renderer.domElement.addEventListener('pointerdown',e
  if(d.slot < slotModels.length) choose(displayed[d.slot],false);
  else pendingView = -1;
 }}
-renderer.domElement.addEventListener('pointerup',e=>{drag=null;if(!renderer.xr.isPresenting){ray.setFromCamera(new T.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),camera);const h=ray.intersectObjects(labels,false)[0];activate(h);}});renderer.domElement.addEventListener('pointercancel',()=>drag=null);addEventListener('keydown',e=>{if($('#guide').open||$('#catalogue').open||$('#height-dialog').open||e.target.matches('select,button,a,input'))return;if(e.key==='ArrowRight')stepPage(1);if(e.key==='ArrowLeft')stepPage(-1);});
+renderer.domElement.addEventListener('pointerup',e=>{drag=null;if(!renderer.xr.isPresenting){ray.setFromCamera(new T.Vector2(e.clientX/innerWidth*2-1,1-e.clientY/innerHeight*2),camera);const h=ray.intersectObjects(labels,false)[0];activate(h);}});renderer.domElement.addEventListener('pointercancel',()=>drag=null);addEventListener('keydown',e=>{if($('#guide').open||$('#catalogue').open||$('#height-dialog').open||photoDialog.open||e.target.matches('select,button,a,input'))return;if(e.key==='ArrowRight')stepPage(1);if(e.key==='ArrowLeft')stepPage(-1);});
 const controllers = [];
 const cursorGeometry = new T.SphereGeometry(.018,12,8);
 const cursorMaterial = new T.MeshBasicMaterial({color:'#ffe4ad',toneMapped:false});

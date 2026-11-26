@@ -1,5 +1,5 @@
 WORLD RECORDS EXPERIENCE — 43-EXHIBIT CATALOGUE
-Version 2026.11.26.8 · Extra spending: 0 SEK.
+Version 2026.11.26.9 · Extra spending: 0 SEK.
 The T. rex display includes a scanned cast of SUE from the Field Museum under CC BY-NC 4.0. The Statue of Liberty uses Innerscene’s textured CC0 model. See RIGHTS.json for sources and Blender changes.
 The selected podium receives a gold rim and spotlight. Immersive VR adds a world-space measurement panel and controller hit markers.
 This update redesigns the gallery hall, exhibit signage, responsive controls, procedural models and solar system shading. Immersive VR starts in front of the selected exhibit. Floor rings and exhibit labels move the visitor to close viewpoints. The optional local height setting adjusts model display sizes and shows measurements relative to the visitor.

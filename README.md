@@ -14,7 +14,7 @@ Tyrannosaurus rex displays a [3D scan of a cast of SUE](https://www.fieldmuseum.
 
 The Statue of Liberty uses a [textured CC0 model by Innerscene](https://www.innerscene.com/tools/library/3d-parts/statue-of-liberty-on-its-pedestal-c8a7318f), optimized in Blender.
 
-The remaining exhibits use more detailed original schematic geometry: **illustrations, not photorealistic, anatomical, or engineering reconstructions**. People use generic measurement figures, not portraits. Values inherited from planning that have not been independently verified are visibly labelled. Published historical measurements do not promise a current record title.
+The remaining exhibits use more detailed original schematic geometry: **illustrations, not photorealistic, anatomical, or engineering reconstructions**. The four named people have historical or documentary photographs in the fact card and VR panel, paired with generic 3D measurement figures. Photo credits and rights are listed in RIGHTS.json. Values inherited from planning that have not been independently verified are visibly labelled. Published historical measurements do not promise a current record title.
 
 Use the section selector, catalogue, and page arrows to browse. Comparison uses a common scale for the three visible measurements; the measurement types can differ. Default display scales each object separately. These are scale models, not life-size reconstructions or orbital spacing.
 
