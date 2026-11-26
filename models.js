@@ -13,6 +13,27 @@ export function buildModel(record){
  const fin=(points,m=blue)=>{const shape=new T.Shape();points.forEach(([x,y],i)=>i?shape.lineTo(x,y):shape.moveTo(x,y));shape.closePath();return mesh(new T.ExtrudeGeometry(shape,{depth:.018,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.015,bevelThickness:.012}),m);};
  const eye=(x,y,z)=>ball(x,y,z,.016,.016,.016,rubber);
  const kind=record.kind;
+ // Original deterministic relief, shared within each exhibit material.
+ // Small texture avoids additional external assets and large GPU allocations.
+ if(['elephant','giraffe','dino','croc','whale','fish','snake','tree','mountain'].includes(kind)){
+  const size=128,data=new Uint8Array(size*size*4);
+  let seed=381;
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+   seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+   const noise=seed/4294967296-.5;
+   const wave=Math.sin(x*Math.PI/16)*Math.cos(y*Math.PI/8);
+   const v=Math.round(128+noise*48+wave*22),i=(y*size+x)*4;
+   data[i]=data[i+1]=data[i+2]=v;data[i+3]=255;
+  }
+  const relief=new T.DataTexture(data,size,size,T.RGBAFormat);
+  relief.wrapS=relief.wrapT=T.RepeatWrapping;
+  relief.magFilter=T.LinearFilter;relief.minFilter=T.LinearMipmapLinearFilter;
+  relief.generateMipmaps=true;relief.repeat.set(3,3);relief.needsUpdate=true;
+  const apply=m=>{if(m.metalness<.2){m.bumpMap=relief;m.bumpScale=.008;}};
+  for(const m of cache.values())apply(m);
+  root.userData.surfaceTexture=relief;
+ }
+
  if(kind==='person'){
   const suit=material('#344c49',.1,.75);ball(0,.91,0,.068,.09,.063,stone);cyl(0,.8,0,.03,.07,stone);ball(0,.65,0,.14,.17,.075,suit);ball(0,.48,0,.115,.07,.07,suit);
   for(const side of [-1,1]){line([side*.065,.47,0],[side*.065,.08,0],.042,suit);ball(side*.065,.035,.028,.05,.035,.095,rubber);line([side*.12,.75,0],[side*.18,.52,0],.035,suit);line([side*.18,.52,0],[side*.17,.39,0],.025,stone);ball(side*.17,.38,0,.028,.045,.023,stone);}
@@ -67,5 +88,6 @@ export function buildModel(record){
  }else if(kind==='rocket'){
   cyl(0,.50,0,.09,1,cream);mesh(new T.ConeGeometry(.09,.14,24),cream,0,1.07,0);for(const y of [.15,.45,.8])cyl(0,y,0,.092,.045,rubber);for(const q of [-1,1]){box(q*.10,.10,0,.12,.18,.02,cream);mesh(new T.ConeGeometry(.04,.08,16),steel,q*.045,-.03,0);}cyl(0,1.18,0,.008,.12,steel);
  }
+ if(root.userData.surfaceTexture)for(const m of cache.values())if(m.metalness<.2){m.bumpMap=root.userData.surfaceTexture;m.bumpScale=.008;}
  root.userData.kind=kind;return root;
 }
