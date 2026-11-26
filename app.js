@@ -1,7 +1,7 @@
 import * as T from './three.module.js';
 const $=s=>document.querySelector(s), status=$('#status');
-import {records,categories} from './catalogue.js?v=2026.11.26.7';
-import {buildModel} from './models.js?v=2026.11.26.7';
+import {records,categories} from './catalogue.js?v=2026.11.26.8';
+import {buildModel} from './models.js?v=2026.11.26.8';
 let renderer;
 try{renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch(e){status.textContent='3D-grafiken kunde inte starta. Aktivera WebGL och ladda om.';throw e;}
 renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');$('#scene').append(renderer.domElement);
@@ -777,27 +777,38 @@ function sphereModel(record) {
  }
  return root;
 }
-const saturnVId = 'record-27';
-let saturnVScene, saturnVLoad, saturnVFailed = false;
+const exhibitAssets = new Map([
+ ['record-16', {
+  file:'assets/innerscene/statue-of-liberty.glb',credit:'INNERSCENE',closeView:true,
+  description:'Texturerad modell av Frihetsgudinnan med sockel, kopparpatina och förgylld fackla. Innerscene, CC0.'
+ }],
+ ['record-27', {
+  file:'saturn-v.glb',credit:'NASA / M. D. CARBAJAL',
+  description:'Texturerad 3D-modell av NASA / Michael D. Carbajal.'
+ }],
+ ['record-29', {
+  file:'assets/field-museum/sue.glb',credit:'FIELD MUSEUM',closeView:true,
+  description:'3D-skanning av en avgjutning av SUE. © Field Museum of Natural History, CC BY-NC 4.0.'
+ }]
+]);
 
-function loadSaturnV() {
- if (saturnVLoad) return;
- saturnVLoad = import('./GLTFLoader.js')
-  .then(({GLTFLoader}) => new GLTFLoader().loadAsync(new URL('./saturn-v.glb', import.meta.url).href))
-  .then(({scene: model}) => {
+function loadExhibitAsset(id,asset) {
+ if (asset.loading) return;
+ asset.loading = import('./GLTFLoader.js')
+  .then(({GLTFLoader}) => new GLTFLoader().loadAsync(new URL(asset.file,import.meta.url).href))
+  .then(({scene:model}) => {
    model.traverse(object => {
     if (!object.isMesh) return;
-    object.castShadow = true;
-    object.receiveShadow = true;
+    object.castShadow = object.receiveShadow = true;
     object.userData.sharedExhibitAssets = true;
    });
-   saturnVScene = model;
-   if (displayed.some(index => records[index].id === saturnVId)) renderGallery();
+   asset.model = model;
+   if (displayed.some(index => records[index].id === id)) renderGallery();
   })
   .catch(error => {
-   saturnVFailed = true;
-   console.warn('Saturn V model unavailable:', error);
-   if (records[selected].id === saturnVId) updateDetail();
+   asset.failed = true;
+   console.warn('Exhibit model unavailable:',id,error);
+   if (records[selected].id === id) updateDetail();
   });
 }
 
@@ -805,9 +816,9 @@ function disposeExhibits(){const mats=new Set(),geos=new Set();exhibits.traverse
 function applyScale(){const viewerScale=personalHeight===null?1:Math.sqrt(personalHeight/limits.default);const worldPerMeter=Math.min(...displayed.map((i,j)=>scales[j]*measureSpans[j]/records[i].value));slotModels.forEach((m,j)=>{const r=records[displayed[j]],actualScale=viewerScale*(compare?worldPerMeter*r.value/measureSpans[j]:scales[j]);m.scale.setScalar(actualScale);m.position.set(0,0,0);const [x,,z]=spots[j];const b=new T.Box3().setFromObject(m),center=b.getCenter(new T.Vector3());m.position.set(x-center.x,(r.kind==='planet'?.35:1.15)-b.min.y,z-center.z);if(r.kind==='planet'){// Body diameter is scaled; Saturn ring span is deliberately larger.
  const body=actualScale;m.position.y=Math.max(.35+body,1.65+viewerScale);}});renderer.shadowMap.needsUpdate=true;updateViewingSpots();$('#compare').textContent=compare?'Återställ skala':'Jämför storlek';$('#compare').setAttribute('aria-pressed',String(compare));}
 function renderGallery(){disposeExhibits();const group=records.map((r,i)=>({r,i})).filter(x=>x.r.cat===category);const pages=Math.ceil(group.length/3);page=((page%pages)+pages)%pages;displayed=group.slice(page*3,page*3+3).map(x=>x.i);scales=[];measureSpans=[];
-displayed.forEach((idx,j)=>{const r=records[idx],[x,,z]=spots[j],model=r.kind==='planet'?sphereModel(r):r.id===saturnVId&&saturnVScene?saturnVScene.clone():buildModel(r);if(r.id===saturnVId)loadSaturnV();exhibits.add(model);model.updateMatrixWorld(true);const b=new T.Box3().setFromObject(model),size=b.getSize(new T.Vector3()),center=b.getCenter(new T.Vector3());model.position.set(x-center.x,.35-b.min.y,z-center.z);const maxSize=Math.max(size.x,size.y,size.z),scale=r.kind==='planet'?(r.id==='saturn'?.75:1.22):Math.min(3.2/maxSize,3.7/Math.max(.01,size.y));scales.push(scale);measureSpans.push(r.kind==='planet'?2:size[r.axis]);slotModels.push(model);
+displayed.forEach((idx,j)=>{const r=records[idx],[x,,z]=spots[j],asset=exhibitAssets.get(r.id),model=r.kind==='planet'?sphereModel(r):asset?.model?.clone()??buildModel(r);if(asset)loadExhibitAsset(r.id,asset);exhibits.add(model);model.updateMatrixWorld(true);const b=new T.Box3().setFromObject(model),size=b.getSize(new T.Vector3()),center=b.getCenter(new T.Vector3());model.position.set(x-center.x,.35-b.min.y,z-center.z);const maxSize=Math.max(size.x,size.y,size.z),scale=r.kind==='planet'?(r.id==='saturn'?.75:1.22):Math.min((r.id==='record-29'&&asset?.model?4.1:3.2)/maxSize,3.7/Math.max(.01,size.y));scales.push(scale);measureSpans.push(r.kind==='planet'?2:size[r.axis]);slotModels.push(model);
 if(r.kind!=='planet'){mesh(new T.CylinderGeometry(.72,.82,.8,48),black.clone(),x,.75,z,exhibits);mesh(new T.CylinderGeometry(.74,.74,.025,48),gold.clone(),x,1.16,z,exhibits);}
-const l=plaque(r.name,measurement(r)+' · '+(r.kind==='planet'?'DIAMETER':r.dimension.toUpperCase())+(r.id===saturnVId&&saturnVScene?' · NASA / M. D. CARBAJAL':''));l.position.set(x,.84,z+2.1);l.userData={type:'exhibit',index:idx};exhibits.add(l);labels.push(l);interactive.push(l);});
+const l=plaque(r.name,measurement(r)+' · '+(r.kind==='planet'?'DIAMETER':r.dimension.toUpperCase())+(asset?.model?' · '+asset.credit:''));l.position.set(x,.84,z+2.1);l.userData={type:'exhibit',index:idx};exhibits.add(l);labels.push(l);interactive.push(l);});
 // Normalize first, then recenter each model in its podium footprint.
 slotModels.forEach((m,j)=>{m.scale.setScalar(scales[j]);m.position.set(0,0,0);const b=new T.Box3().setFromObject(m),center=b.getCenter(new T.Vector3());m.position.set(spots[j][0]-center.x,.35-b.min.y,spots[j][2]-center.z);});applyScale();
 $('#gallery-page').textContent=`${categories[category]} · ${page+1} / ${pages}`;$('#category').value=String(category);$('#exhibits').replaceChildren(...displayed.map((idx,j)=>{const b=document.createElement('button');b.dataset.exhibit=String(idx);b.textContent=records[idx].name;b.onclick=()=>choose(idx);return b;}));if(!displayed.includes(selected))selected=displayed[0];updateDetail();}
@@ -818,14 +829,27 @@ selectionRing.position.set(podiumX,.351,podiumZ);
 exhibitLight.position.set(podiumX-1.3,6.8,podiumZ+2.4);
 exhibitLight.target.position.set(podiumX,1.9,podiumZ);
 $('#height-open').textContent=personalHeight===null?'Min längd':personalHeight+' cm';
-$('#height-summary').textContent=personalHeight===null?'Längden sparas på den här enheten.':r.name+' · '+r.dimension+' · '+ratioLabel(r)+'.';$('#number').textContent=`${String(selected+1).padStart(2,'0')} / ${categories[r.cat].toUpperCase()}`;$('#title').textContent=r.name;$('#description').textContent=r.description;$('#diameter').textContent=r.kind==='planet'?fmt(r.value/1000):fmt(r.value);$('#dimension').textContent=r.kind==='planet'?r.dimension:r.dimension+' · m';$('#visual').textContent=r.id===saturnVId
- ? saturnVScene?'Texturerad 3D-modell av NASA / Michael D. Carbajal.'
- : saturnVFailed?'Förenklad reservmodell visas.':'NASA:s 3D-modell laddas.'
- : r.visual;$('#evidence').textContent=r.verified?'Källbelagt mått · se källa':'Planeringsmått / storleksexempel · ej källverifierat';$('#source').hidden=!r.source;if(r.source){$('#source').href=r.source;$('#source').textContent='Öppna faktakälla';}
+$('#height-summary').textContent=personalHeight===null?'Längden sparas på den här enheten.':r.name+' · '+r.dimension+' · '+ratioLabel(r)+'.';$('#number').textContent=`${String(selected+1).padStart(2,'0')} / ${categories[r.cat].toUpperCase()}`;$('#title').textContent=r.name;$('#description').textContent=r.description;$('#diameter').textContent=r.kind==='planet'?fmt(r.value/1000):fmt(r.value);$('#dimension').textContent=r.kind==='planet'?r.dimension:r.dimension+' · m';const modelAsset=exhibitAssets.get(r.id);
+$('#visual').textContent=modelAsset?.model?modelAsset.description:modelAsset?.failed?'Förenklad reservmodell visas.':modelAsset?'3D-modellen laddas.':r.visual;
+const sueCredit=$('#sue-credit');
+sueCredit.hidden=r.id!=='record-29'||!modelAsset?.model;
+$('#evidence').textContent=r.verified?'Källbelagt mått · se källa':'Planeringsmått / storleksexempel · ej källverifierat';$('#source').hidden=!r.source;if(r.source){$('#source').href=r.source;$('#source').textContent='Öppna faktakälla';}
 $('#scale').textContent=(compare?'Gemensam skala för visade mått; höjd, längd och spännvidd kan skilja.':'Individuell visningsskala.')+(personalHeight===null?'':' '+ratioLabel(r)+'.');
 document.querySelectorAll('[data-exhibit]').forEach(b=>{const active=+b.dataset.exhibit===selected;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});labels.forEach((l,j)=>l.material.color.set(displayed[j]===selected?'#ffffff':'#94a69a'));status.textContent=assetFailures?'Bildkartor saknas: '+assetFailures+' · reservytor används':`${r.name} vald · ${records.length} utställningar`;
 }
-function choose(idx,move=true){document.body.classList.add('exploring');const r=records[idx];if(!r)return;selected=idx;if(r.cat!==category||!displayed.includes(idx)){category=r.cat;page=Math.floor(records.filter((a,i)=>a.cat===category&&i<idx).length/3);renderGallery();}else updateDetail();focusSelectedInVR();if(move&&!renderer.xr.isPresenting){const j=displayed.indexOf(idx);targetX=spots[j][0]*(innerWidth<760?1:.25);targetZ=innerWidth<760?spots[j][2]+6.8:8.7-j*.7;}}
+function choose(idx,move=true){document.body.classList.add('exploring');const r=records[idx];if(!r)return;selected=idx;if(r.cat!==category||!displayed.includes(idx)){category=r.cat;page=Math.floor(records.filter((a,i)=>a.cat===category&&i<idx).length/3);renderGallery();}else updateDetail();focusSelectedInVR();if(move&&!renderer.xr.isPresenting){const j=displayed.indexOf(idx);
+if (exhibitAssets.get(r.id)?.closeView) {
+ const [x,,z]=spots[j];
+ const aspect=innerWidth/innerHeight;
+ const distance=Math.max(5.3,3.95/aspect);
+ targetX=x;
+ targetZ=z+distance;
+ yaw=0;
+ pitch=0;
+} else {
+ targetX=spots[j][0]*(innerWidth<760?1:.25);
+ targetZ=innerWidth<760?spots[j][2]+6.8:8.7-j*.7;
+}}}
 function changeCategory(cat){document.body.classList.add('exploring');category=cat;page=0;compare=false;renderGallery();focusSelectedInVR();targetX=innerWidth<760?spots[0][0]:0;targetZ=innerWidth<760?spots[0][2]+6.8:8.7;}
 function stepPage(delta){document.body.classList.add('exploring');page+=delta;renderGallery();focusSelectedInVR();if(innerWidth<760){targetX=spots[0][0];targetZ=spots[0][2]+6.8;}}
 function toggleCompare(){compare=!compare;applyScale();updateDetail();}

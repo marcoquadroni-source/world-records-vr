@@ -216,6 +216,28 @@
       "verified_on": "2026-11-26",
       "changes": "Local bundled import path. See THREE-LICENSE.txt.",
       "sha256": "86f2ee7669e59f307b778515356148358a8898ddbe217b42f5b66979b3a324aa"
+    },
+    {
+      "file": "assets/field-museum/sue.glb",
+      "source": "https://fm-digital-assets.fieldmuseum.org/2450/144/sue_3d_v4_color.glb",
+      "asset_page": "https://www.fieldmuseum.org/page/sue-3d-model",
+      "creator": "© Field Museum of Natural History",
+      "license": "CC BY-NC 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+      "verified_on": "2026-11-26",
+      "changes": "Optimized in Blender from 93,701 to 31,852 triangles, retaining the original brown material. Reoriented and centered; runtime scales to podium.",
+      "sha256": "5441267991131a968110cbeafb6130c71f5f3501302cb1090fba8d3b3cfccaee"
+    },
+    {
+      "file": "assets/innerscene/statue-of-liberty.glb",
+      "creator": "Innerscene",
+      "source": "https://files.innerscene.com/library/statue-of-liberty-on-its-pedestal-c8a7318f/fbfde4955c12ffc3c47a/statue-of-liberty-on-its-pedestal.glb",
+      "asset_page": "https://www.innerscene.com/tools/library/3d-parts/statue-of-liberty-on-its-pedestal-c8a7318f",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "verified_on": "2026-11-26",
+      "changes": "Reduced in Blender to 32,536 triangles with 1024px textures. Original dimensions retained.",
+      "sha256": "a2f2783bfe59601f627105179c9fe37cf9fd38555109721fa9ad282e8a7fe260"
     }
   ]
 }

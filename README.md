@@ -10,6 +10,10 @@ The solar system includes all eight planets, plus the Moon and Sun. Surface shad
 
 Saturn V uses the original textured GLB by [NASA / Michael D. Carbajal](https://science.nasa.gov/3d-resources/saturn-v/). The app loads it when its gallery page opens and displays a schematic model while loading or if the asset is unavailable.
 
+Tyrannosaurus rex displays a [3D scan of a cast of SUE](https://www.fieldmuseum.org/page/sue-3d-model), © Field Museum of Natural History, [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/). The model was reoriented, centered and reduced to 31,852 triangles in Blender. It is bundled for noncommercial use.
+
+The Statue of Liberty uses a [textured CC0 model by Innerscene](https://www.innerscene.com/tools/library/3d-parts/statue-of-liberty-on-its-pedestal-c8a7318f), optimized in Blender.
+
 The remaining exhibits use more detailed original schematic geometry: **illustrations, not photorealistic, anatomical, or engineering reconstructions**. People use generic measurement figures, not portraits. Values inherited from planning that have not been independently verified are visibly labelled. Published historical measurements do not promise a current record title.
 
 Use the section selector, catalogue, and page arrows to browse. Comparison uses a common scale for the three visible measurements; the measurement types can differ. Default display scales each object separately. These are scale models, not life-size reconstructions or orbital spacing.
