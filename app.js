@@ -1,7 +1,7 @@
 import * as T from './three.module.js';
 const $=s=>document.querySelector(s), status=$('#status');
-import {records,categories} from './catalogue.js?v=2026.11.26.6';
-import {buildModel} from './models.js?v=2026.11.26.6';
+import {records,categories} from './catalogue.js?v=2026.11.26.7';
+import {buildModel} from './models.js?v=2026.11.26.7';
 let renderer;
 try{renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}catch(e){status.textContent='3D-grafiken kunde inte starta. Aktivera WebGL och ladda om.';throw e;}
 renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;renderer.xr.enabled=true;renderer.xr.setReferenceSpaceType('local-floor');$('#scene').append(renderer.domElement);
@@ -91,7 +91,8 @@ const ivory = mat('#e8dac0', .68);
 const bronze = mat('#6f5437', .48, .64);
 const recess = mat('#102724', .78);
 const glow = new T.MeshBasicMaterial({color: '#ffdc9c', toneMapped: false});
-const paleLight = new T.MeshBasicMaterial({color: '#cbdbd7'});
+const paleLight = new T.MeshBasicMaterial({color:'#d8e2e1',toneMapped:false});
+const skylightGlass = new T.MeshBasicMaterial({color:'#f3f5f2',toneMapped:false});
 const bayZ = [-14.4, -10.4, -6.4, -2.4, 1.6, 5.6, 9.6];
 const sides = [-1, 1];
 const sideBays = (x, y) => sides.flatMap(sign => bayZ.map(z => [sign * x, y, z]));
@@ -114,12 +115,52 @@ fixtures(new T.BoxGeometry(.018, 1.86, .03), gold, rearPanels.flatMap(x => [-2.6
 architectureBox(28, .08, .08, gold, 0, .44, -16.60);
 architectureBox(28, .18, .16, ivory, 0, .28, -16.60);
 
+// Static light washes and contact shading give the architecture depth in both eyes.
+function softMask(stops,ellipse=false) {
+ const canvas = document.createElement('canvas');
+ canvas.width = canvas.height = 128;
+ const context = canvas.getContext('2d');
+ if (ellipse) context.scale(1,1.65);
+ const centerY = ellipse ? 15 : 64;
+ const gradient = context.createRadialGradient(64,centerY,0,64,centerY,64);
+ for (const [position,opacity] of stops) gradient.addColorStop(position,'rgba(255,255,255,'+opacity+')');
+ context.fillStyle = gradient;
+ context.fillRect(0,0,128,128);
+ return new T.CanvasTexture(canvas);
+}
+const wallBounce = new T.MeshBasicMaterial({
+ color:'#dcc6a0',map:softMask([[0,.24],[.32,.14],[.72,.035],[1,0]],true),
+ transparent:true,depthWrite:false,toneMapped:false,dithering:true,blending:T.AdditiveBlending
+});
+fixtures(new T.PlaneGeometry(5.18,6.35),wallBounce,rearPanels.map(x => [x,4.18,-16.62]));
+const columnOcclusion = new T.MeshBasicMaterial({
+ color:'#211d16',map:softMask([[0,.56],[.35,.42],[.65,.14],[1,0]]),
+ transparent:true,depthWrite:false
+});
+const pierShadow = new T.PlaneGeometry(2.4,2.25).rotateX(-Math.PI/2);
+fixtures(pierShadow,columnOcclusion,sideBays(11.68,-.008));
+
+// Beveled stone catches natural edge highlights in close head-tracked views.
+function beveledPier(width,height,depth,bevel) {
+ const shape = new T.Shape();
+ const x = width/2-bevel, y = height/2-bevel;
+ shape.moveTo(-x,-y);
+ shape.lineTo(x,-y);
+ shape.lineTo(x,y);
+ shape.lineTo(-x,y);
+ shape.closePath();
+ return new T.ExtrudeGeometry(shape,{
+  depth:depth-2*bevel,bevelEnabled:true,bevelSize:bevel,
+  bevelThickness:bevel,bevelSegments:2,steps:1
+ }).translate(0,0,-depth/2+bevel);
+}
+
 // Limestone piers support the curved transverse ribs and frame the side-wall bays.
-fixtures(new T.BoxGeometry(.67, 4.82, .83), stone, sideBays(11.68, 2.41));
+fixtures(beveledPier(.67,4.82,.83,.044), stone, sideBays(11.68, 2.41));
 fixtures(new T.BoxGeometry(.025, 4.36, .86), ivory, sideBays(11.33, 2.45));
 fixtures(new T.BoxGeometry(.91, .3, 1.04), dark, sideBays(11.68, .15));
 fixtures(new T.BoxGeometry(.94, .035, 1.07), gold, sideBays(11.68, .32));
-fixtures(new T.BoxGeometry(.95, .24, 1.06), ivory, sideBays(11.68, 4.79));
+fixtures(beveledPier(.95,.24,1.06,.028), ivory, sideBays(11.68, 4.79));
 fixtures(new T.BoxGeometry(.033, 2.70, .055), glow, sideBays(11.29, 2.65));
 fixtures(new T.BoxGeometry(.12, 3.64, 3.33), bronze, sideBays(13.77, 2.36));
 fixtures(new T.BoxGeometry(.11, 3.46, 3.14), recess, sideBays(13.70, 2.36));
@@ -142,14 +183,16 @@ function archGeometry(depth, inset, thickness) {
 fixtures(archGeometry(.38, 0, .29), ivory, bayZ.map(z => [0, 0, z]));
 fixtures(archGeometry(.016, .045, .045), gold, bayZ.map(z => [0, 0, z + .2]));
 architectureBox(27.8, .13, 33, stone, 0, 9.08, -1.8);
-architectureBox(8.2, .12, 33, paleLight, 0, 8.96, -1.8);
+architectureBox(8.2,.12,33,paleLight,0,8.96,-1.8);
+fixtures(new T.BoxGeometry(7.95,.035,3.73),skylightGlass,bayZ.map(z => [0,8.895,z]));
+fixtures(new T.BoxGeometry(.035,.042,33),bronze,[-2.66,0,2.66].map(x => [x,8.865,-1.8]));
 fixtures(new T.BoxGeometry(.19, .12, 33), bronze, [[-4.2, 8.87, -1.8], [4.2, 8.87, -1.8]]);
 fixtures(new T.BoxGeometry(.052, .04, 33), glow, [[-4.07, 8.85, -1.8], [4.07, 8.85, -1.8]]);
 fixtures(new T.BoxGeometry(8.30, .12, .10), bronze, bayZ.map(z => [0, 8.86, z + 2]));
 fixtures(new T.BoxGeometry(4.8, .25, 33), dark, [[-10.6, 7.06, -1.8], [10.6, 7.06, -1.8]]);
 
-scene.add(new T.HemisphereLight('#d1e0dd', '#a0805d', 1.02));
-const key = new T.DirectionalLight('#fff1da', 2.62);
+scene.add(new T.HemisphereLight('#d8e5ea', '#ad927a', .68));
+const key = new T.DirectionalLight('#fff3df', 2.28);
 key.position.set(-8, 16, 4);
 key.target.position.set(0, 0, -5.5);
 key.castShadow = true;
@@ -159,7 +202,7 @@ Object.assign(key.shadow.camera, {left: -12, right: 12, top: 11, bottom: -11, ne
 key.shadow.normalBias = .025;
 key.shadow.bias = -.00012;
 scene.add(key, key.target);
-const rim = new T.DirectionalLight('#aacee2', .83);
+const rim = new T.DirectionalLight('#aacee2', .71);
 rim.position.set(10, 7, -12);
 scene.add(rim);
 
@@ -207,11 +250,11 @@ async function installMarble() {
  color.colorSpace = T.SRGBColorSpace;
  floor.map.dispose();
  floor.map = color;
- floor.color.set('#f1e8d9');
+ floor.color.set('#d5cbbb');
  floor.normalMap = normal;
- floor.normalScale.set(.48,.48);
+ floor.normalScale.set(.64,.64);
  floor.roughnessMap = roughness;
- floor.roughness = roughness ? .84 : .47;
+ floor.roughness = roughness ? 1 : .56;
  floor.needsUpdate = true;
 }
 

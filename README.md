@@ -4,7 +4,7 @@ A real-time 3D museum prototype with **43 exhibits in six sections**: people (6)
 
 [Open the app](https://marcoquadroni-source.github.io/world-records-vr/)
 
-The exhibition hall features limestone arches, bronze trim, skylights and Poly Haven marble with a procedural stone fallback. Repeated hall elements are instanced and the static shadow map is refreshed when the exhibits change. Marble 01 by Rob Tuytel, Studio Small 03 by Greg Zaal, and Painted Wooden Bench by Kirill Sannikov are locally bundled [Poly Haven CC0 assets](https://polyhaven.com/license).
+The exhibition hall features limestone arches, bronze trim, skylights and Poly Haven marble with a procedural stone fallback. Beveled stonework, column contact shadows and soft wall washes add depth to the photographed-material surfaces. Repeated hall elements are instanced and the static shadow map is refreshed when the exhibits change. Marble 01 by Rob Tuytel, Studio Small 03 by Greg Zaal, and Painted Wooden Bench by Kirill Sannikov are locally bundled [Poly Haven CC0 assets](https://polyhaven.com/license).
 
 The solar system includes all eight planets, plus the Moon and Sun. Surface shading includes day and night, inferred rocky relief, Earth clouds and atmospheric light, and shadows between Saturn and its rings. Planet imagery: Solar System Scope / INOVE, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), with per-file sources and hashes in RIGHTS.json. Three.js is MIT licensed; its notice is retained in THREE-LICENSE.txt.
 
